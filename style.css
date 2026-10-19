@@ -122,25 +122,45 @@ body {
   box-shadow: 0 0 40px var(--shadow);
 }
 
-/* ---- Back-to-Back: badge mientras la racha está activa ---- */
-.b2b-badge {
-  display: none;
+/* ---- Badges (B2B / LENTO): apilados arriba a la izquierda ---- */
+.badges {
   position: absolute;
   top: 8px;
   left: 8px;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.badge {
+  display: none;
+  min-width: 64px;
+  box-sizing: border-box;
+  text-align: center;
   padding: 2px 10px;
   border-radius: 4px;
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 2px;
   color: #1a1a25;
-  background: var(--b2b-glow);
-  box-shadow: 0 0 12px var(--b2b-glow);
-  animation: b2b-badge-pop 1s ease-in-out infinite;
+  animation: badge-pop 1s ease-in-out infinite;
 }
 
-.b2b-active .b2b-badge {
+.b2b-badge {
+  background: var(--b2b-glow);
+  box-shadow: 0 0 12px var(--b2b-glow);
+}
+
+.slow-badge {
+  background: var(--slow-glow);
+  box-shadow: 0 0 12px var(--slow-glow);
+}
+
+.b2b-active .b2b-badge,
+.slow-active .slow-badge {
   display: block;
 }
 
@@ -155,13 +175,13 @@ body {
 }
 
 /* El badge se congela mientras el overlay (pausa/game over) está visible */
-.game-area:has(.overlay:not(.hidden)) .b2b-badge {
+.game-area:has(.overlay:not(.hidden)) .badge {
   animation-play-state: paused;
 }
 
-@keyframes b2b-badge-pop {
+@keyframes badge-pop {
   0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.15); }
+  50%      { transform: scale(1.05); }
 }
 
 /* ---- Panel lateral ---- */
@@ -255,10 +275,14 @@ body {
   .energy-bar.ready { animation: none; box-shadow: 0 0 8px var(--b2b-glow); }
 }
 
-/* Ralentizar activo: tablero con brillo azul */
-.slow-active #board {
-  border-color: var(--slow-glow);
-  box-shadow: 0 0 24px var(--slow-glow), 0 0 40px var(--shadow);
+/* Destello único azul al activar Lento (el estado activo lo indica el badge) */
+#board.slow-glow {
+  animation: slow-glow 1s ease-out 1;
+}
+
+@keyframes slow-glow {
+  0%   { border-color: var(--slow-glow); box-shadow: 0 0 30px 8px var(--slow-glow), 0 0 40px var(--shadow); }
+  100% { border-color: var(--border);    box-shadow: 0 0 0 0 transparent, 0 0 40px var(--shadow); }
 }
 
 /* ---- Menú de habilidades ---- */
