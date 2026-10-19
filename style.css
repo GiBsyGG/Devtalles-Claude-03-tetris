@@ -16,6 +16,7 @@
   --danger: #e57373;
   --shadow: rgba(0, 0, 0, 0.6);
   --b2b-glow: #ffca28;
+  --slow-glow: #4fc3f7;
 }
 
 [data-theme="light"] {
@@ -36,6 +37,7 @@
   --danger: #d6336c;
   --shadow: rgba(40, 50, 90, 0.2);
   --b2b-glow: #ff9800;
+  --slow-glow: #0288d1;
 }
 
 *, *::before, *::after {
@@ -193,11 +195,103 @@ body {
 }
 
 #next-canvas,
-#hold-canvas {
+#hold-canvas,
+#queue-canvas {
   display: block;
   border: 1px solid var(--border);
   background: var(--board-bg);
   border-radius: 4px;
+}
+
+#queue-canvas.hidden {
+  display: none;
+}
+
+/* ---- Energía: barra que se llena al limpiar líneas ---- */
+.energy-bar {
+  width: 120px;
+  height: 12px;
+  border: 1px solid var(--border);
+  background: var(--board-bg);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#energy-fill {
+  width: 0;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s;
+}
+
+.energy-bar.ready {
+  border-color: var(--b2b-glow);
+  animation: energy-ready 1s ease-in-out infinite;
+}
+
+.energy-bar.ready #energy-fill {
+  background: var(--b2b-glow);
+}
+
+.energy-hint {
+  min-height: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+@keyframes energy-ready {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50%      { box-shadow: 0 0 10px var(--b2b-glow); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .energy-bar.ready { animation: none; box-shadow: 0 0 8px var(--b2b-glow); }
+}
+
+/* Ralentizar activo: tablero con brillo azul */
+.slow-active #board {
+  border-color: var(--slow-glow);
+  box-shadow: 0 0 24px var(--slow-glow), 0 0 40px var(--shadow);
+}
+
+/* ---- Menú de habilidades ---- */
+#ability-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--accent);
+}
+
+.ability-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.ability-list li {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ability-list.hidden {
+  display: none;
+}
+
+.ability-esc {
+  color: var(--muted);
+  font-size: 12px !important;
+}
+
+#ability-msg {
+  min-height: 16px;
+  font-size: 12px;
+  color: var(--danger);
 }
 
 /* ---- Hold: atenuado mientras ya se usó en el turno actual ---- */
