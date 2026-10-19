@@ -71,6 +71,31 @@ body {
   text-align: center;
 }
 
+/* ---- Tetris (4 líneas): las letras brincan en ola y se iluminan con la paleta ---- */
+.title span {
+  display: inline-block;
+}
+
+.title.tetris-celebrate span {
+  animation: title-hop 0.9s ease-out both;
+  animation-delay: calc(var(--i) * 80ms);
+}
+
+@keyframes title-hop {
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-14px) scale(1.15); color: var(--c); text-shadow: 0 0 12px var(--c), 0 0 24px var(--c); }
+  60%  { transform: translateY(0) scale(1); color: var(--c); text-shadow: 0 0 12px var(--c), 0 0 24px var(--c); }
+  100% { transform: translateY(0) scale(1); color: var(--accent); text-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes title-hop {
+    0%   { color: var(--accent); }
+    30%, 60% { color: var(--c); text-shadow: 0 0 12px var(--c), 0 0 24px var(--c); }
+    100% { color: var(--accent); text-shadow: none; }
+  }
+}
+
 /* El overlay se posiciona sobre el juego, sin cubrir el título */
 .game-area {
   position: relative;

@@ -101,6 +101,8 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggle = document.getElementById('theme-toggle');
 const gameArea = document.querySelector('.game-area');
+const titleEl = document.querySelector('.title');
+const titleLetters = titleEl.querySelectorAll('span');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let lastMoveRotate = false; // true si la última acción de la pieza actual fue una rotación (T-Spin)
@@ -339,7 +341,22 @@ function lockPiece() {
 
   Effects.trigger(res.events, { tCells });
   syncB2B();
+  if (cleared === 4) celebrateTetris();
   spawn();
+}
+
+// Cada letra toma un color de la paleta actual (efecto arcoíris) y su retardo por índice
+function syncTitleColors() {
+  titleLetters.forEach((el, i) => {
+    el.style.setProperty('--i', i);
+    el.style.setProperty('--c', COLORS[(i % 7) + 1]);
+  });
+}
+
+function celebrateTetris() {
+  titleEl.classList.remove('tetris-celebrate');
+  void titleEl.offsetWidth; // reinicia la animación si hay Tetris seguidos
+  titleEl.classList.add('tetris-celebrate');
 }
 
 function syncB2B() {
@@ -485,6 +502,7 @@ function init() {
   Scoring.reset();
   Effects.clear();
   syncB2B();
+  titleEl.classList.remove('tetris-celebrate');
   next = randomPiece();
   spawn();
   updateHUD();
@@ -526,6 +544,7 @@ function applyTheme(theme) {
   else delete document.documentElement.dataset.theme;
   COLORS = isLight ? PALETTES.light : PALETTES.dark;
   gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+  syncTitleColors();
   const label = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
   themeToggle.setAttribute('aria-label', label);
   themeToggle.title = label;
