@@ -395,6 +395,9 @@ function celebrateTetris() {
   titleEl.classList.remove('tetris-celebrate');
   void titleEl.offsetWidth; // reinicia la animación si hay Tetris seguidos
   titleEl.classList.add('tetris-celebrate');
+  canvas.classList.remove('tetris-glow');
+  void canvas.offsetWidth;
+  canvas.classList.add('tetris-glow');
 }
 
 function syncB2B() {

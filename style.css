@@ -115,7 +115,7 @@ body {
   box-shadow: 0 0 40px var(--shadow);
 }
 
-/* ---- Back-to-Back: halo persistente mientras la racha está activa ---- */
+/* ---- Back-to-Back: badge mientras la racha está activa ---- */
 .b2b-badge {
   display: none;
   position: absolute;
@@ -137,14 +137,19 @@ body {
   display: block;
 }
 
-.b2b-active #board {
-  border-color: var(--b2b-glow);
-  animation: b2b-pulse 1.2s ease-in-out infinite;
+/* Destello único del tablero al lograr un Tetris */
+#board.tetris-glow {
+  animation: tetris-glow 1s ease-out 1;
 }
 
-@keyframes b2b-pulse {
-  0%, 100% { box-shadow: 0 0 14px 2px var(--b2b-glow), 0 0 40px var(--shadow); }
-  50%      { box-shadow: 0 0 30px 8px var(--b2b-glow), 0 0 40px var(--shadow); }
+@keyframes tetris-glow {
+  0%   { border-color: var(--b2b-glow); box-shadow: 0 0 30px 8px var(--b2b-glow), 0 0 40px var(--shadow); }
+  100% { border-color: var(--border);   box-shadow: 0 0 0 0 transparent, 0 0 40px var(--shadow); }
+}
+
+/* El badge se congela mientras el overlay (pausa/game over) está visible */
+.game-area:has(.overlay:not(.hidden)) .b2b-badge {
+  animation-play-state: paused;
 }
 
 @keyframes b2b-badge-pop {
@@ -219,6 +224,7 @@ kbd {
 .overlay {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
