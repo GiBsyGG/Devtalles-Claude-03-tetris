@@ -630,6 +630,9 @@ function useAbility(n) {
     drawNext();
   } else if (n === 3) {
     st.slowLeft = Abilities.SLOW_MS;
+    canvas.classList.remove('slow-glow');
+    void canvas.offsetWidth; // reinicia el destello si se reactiva
+    canvas.classList.add('slow-glow');
   }
   Abilities.consume();
   syncEnergy();
