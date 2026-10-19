@@ -15,6 +15,11 @@ const PALETTES = {
     '#e57373', // Z - red
     '#90caf9', // J - azul pálido
     '#ffb74d', // L - orange
+    '#f06292', // + - rosa
+    '#a1887f', // U - marrón
+    '#4db6ac', // Y - verde azulado
+    '#fff176', // 1×1 - amarillo claro
+    '#b0bec5', // 3×3 hueca - gris azulado
   ],
   light: [
     null,
@@ -25,6 +30,11 @@ const PALETTES = {
     '#e53935', // Z - rojo
     '#1e63d6', // J - azul
     '#ef6c00', // L - naranja oscuro
+    '#d81b60', // + - rosa
+    '#795548', // U - marrón
+    '#00897b', // Y - verde azulado
+    '#c6a700', // 1×1 - dorado
+    '#607d8b', // 3×3 hueca - gris azulado
   ],
 };
 
@@ -41,7 +51,17 @@ const PIECES = [
   [[5,5,0],[0,5,5],[0,0,0]],                  // Z
   [[6,0,0],[6,6,6],[0,0,0]],                  // J
   [[0,0,7],[7,7,7],[0,0,0]],                  // L
+  [[0,8,0],[8,8,8],[0,8,0]],                  // + (pentominó)
+  [[9,0,9],[9,9,9],[0,0,0]],                  // U (pentominó)
+  [[0,0,0,0],[10,10,10,10],[0,10,0,0],[0,0,0,0]], // Y (pentominó)
+  [[11]],                                      // 1×1 (recompensa tras Tetris)
+  [[12,12,12],[12,0,12],[12,12,12]],          // 3×3 hueca (reto al subir de nivel)
 ];
+
+const PENTOMINOES = [8, 9, 10];
+const PENTOMINO_CHANCE = 0.1;
+const SINGLE = 11;
+const HOLLOW = 12;
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
@@ -105,6 +125,7 @@ const titleEl = document.querySelector('.title');
 const titleLetters = titleEl.querySelectorAll('span');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let queue = []; // piezas forzadas (single/hueca) que salen antes del sorteo aleatorio
 let lastMoveRotate = false; // true si la última acción de la pieza actual fue una rotación (T-Spin)
 
 // Animaciones de feedback: solo dibujan sobre el canvas, no conocen las reglas de puntuación.
@@ -222,7 +243,13 @@ function createBoard() {
 }
 
 function randomPiece() {
-  const type = Math.floor(Math.random() * 7) + 1;
+  if (Math.random() < PENTOMINO_CHANCE) {
+    return makePiece(PENTOMINOES[Math.floor(Math.random() * PENTOMINOES.length)]);
+  }
+  return makePiece(Math.floor(Math.random() * 7) + 1);
+}
+
+function makePiece(type) {
   const shape = PIECES[type].map(row => [...row]);
   return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
 }
@@ -329,6 +356,7 @@ function lockPiece() {
   }
 
   merge();
+  const prevLevel = level;
   const cleared = clearLines();
   const boardEmpty = board.every(row => row.every(v => v === 0));
 
@@ -343,6 +371,16 @@ function lockPiece() {
   syncB2B();
   if (cleared === 4) celebrateTetris();
   spawn();
+  if (gameOver) return;
+  if (level > prevLevel) forceNext(HOLLOW);
+  if (cleared === 4) forceNext(SINGLE);
+}
+
+// Reemplaza "Siguiente"; la pieza desplazada sale justo después
+function forceNext(type) {
+  queue.unshift(next);
+  next = makePiece(type);
+  drawNext();
 }
 
 // Cada letra toma un color de la paleta actual (efecto arcoíris) y su retardo por índice
@@ -366,7 +404,7 @@ function syncB2B() {
 function spawn() {
   lastMoveRotate = false;
   current = next;
-  next = randomPiece();
+  next = queue.shift() || randomPiece();
   if (collide(current.shape, current.x, current.y)) {
     endGame();
   }
@@ -503,6 +541,7 @@ function init() {
   Effects.clear();
   syncB2B();
   titleEl.classList.remove('tetris-celebrate');
+  queue = [];
   next = randomPiece();
   spawn();
   updateHUD();
