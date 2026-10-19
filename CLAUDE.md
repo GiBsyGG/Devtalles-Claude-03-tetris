@@ -1,0 +1,26 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+Vanilla JS Tetris (HTML5 Canvas). No dependencies, no `package.json`, no build, no tests, no linter. README is in Spanish; UI strings are Spanish too.
+
+## Run
+
+Open `index.html` directly, or serve statically: `python -m http.server 8000` (then http://localhost:8000).
+
+## Architecture
+
+Three files, all logic in `game.js` (single script, global scope, `'use strict'`):
+
+- `index.html` — DOM ids that `game.js` looks up at load (`board`, `next-canvas`, `score`, `lines`, `level`, `overlay`, `overlay-title`, `overlay-score`, `restart-btn`). Renaming any breaks the script.
+- `game.js` — module-level mutable state (`board`, `current`, `next`, `score`, ...) reset by `init()`. Flow: `init` → `spawn` → rAF `loop` (gravity via `dropAccum` vs `dropInterval`) → `lockPiece` = `merge` + `clearLines` + `spawn`. `spawn` calls `endGame` if new piece collides. Keydown handler at the bottom drives movement; restart button re-calls `init`.
+- Pieces are square matrices whose cell values are color indices (1–7) into `COLORS`/`PIECES`; the same index is stored in `board` after merge (0 = empty). Index 0 is `null` in both arrays — keep that offset when adding pieces (`randomPiece` hardcodes `* 7 + 1`).
+- Rotation: `rotateCW` + `tryRotate` with horizontal kicks `[0,-1,1,-2,2]` only (no SRS).
+- Level/speed are derived in `clearLines`: level = `floor(lines/10)+1`, `dropInterval = max(100, 1000-(level-1)*90)`.
+
+## Gotchas
+
+- Board size is duplicated: `COLS`/`ROWS`/`BLOCK` in `game.js` must match `<canvas id="board" width height>` in `index.html` (`COLS*BLOCK` × `ROWS*BLOCK`). Next-piece canvas is fixed 120×120 (4 cells × 30).
+- Pause/restart cancel and restart rAF via `animId`; `togglePause` resets `lastTime` to avoid a huge `dt` on resume. Preserve this when touching the loop.
