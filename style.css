@@ -107,6 +107,11 @@ body {
   align-items: flex-start;
 }
 
+/* Ancla del badge B2B a la esquina del tablero */
+.board-wrap {
+  position: relative;
+}
+
 #board {
   display: block;
   border: 1px solid var(--border);
@@ -187,11 +192,25 @@ body {
   letter-spacing: 1px;
 }
 
-#next-canvas {
+#next-canvas,
+#hold-canvas {
   display: block;
   border: 1px solid var(--border);
   background: var(--board-bg);
   border-radius: 4px;
+}
+
+/* ---- Hold: atenuado mientras ya se usó en el turno actual ---- */
+.panel-hold {
+  width: 122px;
+}
+
+#hold-canvas {
+  transition: opacity 0.15s;
+}
+
+#hold-canvas.locked {
+  opacity: 0.35;
 }
 
 /* ---- Controles ---- */

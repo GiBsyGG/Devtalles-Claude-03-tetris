@@ -112,6 +112,8 @@ const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next-canvas');
 const nextCtx = nextCanvas.getContext('2d');
+const holdCanvas = document.getElementById('hold-canvas');
+const holdCtx = holdCanvas.getContext('2d');
 const scoreEl = document.getElementById('score');
 const linesEl = document.getElementById('lines');
 const levelEl = document.getElementById('level');
@@ -126,6 +128,8 @@ const titleLetters = titleEl.querySelectorAll('span');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let queue = []; // piezas forzadas (single/hueca) que salen antes del sorteo aleatorio
+let hold = null; // tipo de la pieza guardada (null = vacío)
+let canHold = true; // un solo hold por pieza; se libera al bloquear
 let lastMoveRotate = false; // true si la última acción de la pieza actual fue una rotación (T-Spin)
 
 // Animaciones de feedback: solo dibujan sobre el canvas, no conocen las reglas de puntuación.
@@ -370,6 +374,8 @@ function lockPiece() {
   Effects.trigger(res.events, { tCells });
   syncB2B();
   if (cleared === 4) celebrateTetris();
+  canHold = true;
+  drawHold();
   spawn();
   if (gameOver) return;
   if (level > prevLevel) forceNext(HOLLOW);
@@ -412,6 +418,24 @@ function spawn() {
     endGame();
   }
   drawNext();
+}
+
+// Guarda la pieza actual; si ya hay una guardada, las intercambia
+function holdPiece() {
+  if (!canHold) return;
+  if (hold === null) {
+    hold = current.type;
+    spawn();
+  } else {
+    const type = hold;
+    hold = current.type;
+    current = makePiece(type);
+    lastMoveRotate = false;
+    if (collide(current.shape, current.x, current.y)) endGame();
+  }
+  canHold = false;
+  dropAccum = 0;
+  drawHold();
 }
 
 function updateHUD() {
@@ -477,15 +501,25 @@ function draw() {
   ctx.restore();
 }
 
-function drawNext() {
+function drawPreview(context, cvs, piece) {
   const NB = 30;
-  nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-  const shape = next.shape;
+  context.clearRect(0, 0, cvs.width, cvs.height);
+  if (!piece) return;
+  const shape = piece.shape;
   const offX = Math.floor((4 - shape[0].length) / 2);
   const offY = Math.floor((4 - shape.length) / 2);
   for (let r = 0; r < shape.length; r++)
     for (let c = 0; c < shape[r].length; c++)
-      drawBlock(nextCtx, offX + c, offY + r, shape[r][c], NB);
+      drawBlock(context, offX + c, offY + r, shape[r][c], NB);
+}
+
+function drawNext() {
+  drawPreview(nextCtx, nextCanvas, next);
+}
+
+function drawHold() {
+  drawPreview(holdCtx, holdCanvas, hold && makePiece(hold));
+  holdCanvas.classList.toggle('locked', !canHold);
 }
 
 function endGame() {
@@ -545,8 +579,11 @@ function init() {
   syncB2B();
   titleEl.classList.remove('tetris-celebrate');
   queue = [];
+  hold = null;
+  canHold = true;
   next = randomPiece();
   spawn();
+  drawHold();
   updateHUD();
   overlay.classList.add('hidden');
   cancelAnimationFrame(animId);
@@ -574,6 +611,11 @@ document.addEventListener('keydown', e => {
       e.preventDefault();
       hardDrop();
       break;
+    case 'KeyC':
+    case 'ShiftLeft':
+    case 'ShiftRight':
+      holdPiece();
+      break;
   }
   updateHUD();
 });
@@ -592,7 +634,7 @@ function applyTheme(theme) {
   themeToggle.title = label;
   themeToggle.setAttribute('aria-pressed', String(isLight));
   // Repinta directamente: en pausa o game over el rAF no corre
-  if (board) { draw(); drawNext(); }
+  if (board) { draw(); drawNext(); drawHold(); }
 }
 
 themeToggle.addEventListener('click', () => {
