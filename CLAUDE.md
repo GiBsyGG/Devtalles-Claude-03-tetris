@@ -14,11 +14,14 @@ Open `index.html` directly, or serve statically: `python -m http.server 8000` (t
 
 Three files, all logic in `game.js` (single script, global scope, `'use strict'`):
 
-- `index.html` — DOM ids that `game.js` looks up at load (`board`, `next-canvas`, `score`, `lines`, `level`, `overlay`, `overlay-title`, `overlay-score`, `restart-btn`, `theme-toggle`). Renaming any breaks the script.
+- `index.html` — DOM ids that `game.js` looks up at load (`board`, `next-canvas`, `score`, `lines`, `level`, `overlay`, `overlay-title`, `overlay-score`, `restart-btn`, `theme-toggle`, `b2b-badge`; plus `.game-area` via querySelector). Renaming any breaks the script.
 - `game.js` — module-level mutable state (`board`, `current`, `next`, `score`, ...) reset by `init()`. Flow: `init` → `spawn` → rAF `loop` (gravity via `dropAccum` vs `dropInterval`) → `lockPiece` = `merge` + `clearLines` + `spawn`. `spawn` calls `endGame` if new piece collides. Keydown handler at the bottom drives movement; restart button re-calls `init`.
 - Pieces are square matrices whose cell values are color indices (1–7) into `COLORS`/`PIECES`; the same index is stored in `board` after merge (0 = empty). Index 0 is `null` in both arrays — keep that offset when adding pieces (`randomPiece` hardcodes `* 7 + 1`).
 - Rotation: `rotateCW` + `tryRotate` with horizontal kicks `[0,-1,1,-2,2]` only (no SRS).
-- Level/speed are derived in `clearLines`: level = `floor(lines/10)+1`, `dropInterval = max(100, 1000-(level-1)*90)`.
+- `clearLines` only removes rows and returns the count. Scoring/level live in `lockPiece`: `isTSpin` → `merge` → `clearLines` → `Scoring.resolveTurn` → `Effects.trigger` → `spawn`. Level = `floor(lines/10)+1`, `dropInterval = max(100, 1000-(level-1)*90)`.
+- `Scoring` (game.js) is pure logic: combo multiplier, T-Spin bonus, B2B x1.5, Perfect Clear flat bonus; returns `{points, events}`. `Effects` (game.js) only animates on the board canvas from those events (`update(dt)` in `loop`, `draw` inside `draw()`, shake via `shakeOffset`). Both reset in `init`.
+- T-Spin: `lastMoveRotate` is set by `tryRotate` and cleared by any successful move/drop and in `spawn`; `isTSpin` needs ≥3 of the 4 corners of the T's 3×3 box filled.
+- B2B halo is CSS: `syncB2B` toggles `b2b-active` on `.game-area` (`#b2b-badge`, `--b2b-glow`).
 
 - Theming: CSS variables under `:root` (dark, default) and `[data-theme="light"]`; `applyTheme` in `game.js` swaps `COLORS` between `PALETTES.dark/light`, caches `--grid` into `gridColor`, repaints directly (rAF is stopped when paused/game over) and persists to `localStorage` key `tetris-theme`. A small inline script in `index.html`'s head applies the saved theme before first paint.
 

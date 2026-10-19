@@ -45,6 +45,49 @@ const PIECES = [
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
+// Lógica de puntuación pura: sin DOM ni canvas. Devuelve puntos y eventos para los efectos.
+const Scoring = {
+  TSPIN_BONUS: [400, 800, 1200, 1600], // índice = líneas limpiadas
+  B2B_FACTOR: 1.5,
+  PERFECT_CLEAR_BONUS: 3000,
+  state: { combo: 0, b2b: false },
+
+  reset() {
+    this.state.combo = 0;
+    this.state.b2b = false;
+  },
+
+  resolveTurn({ cleared, tspin, boardEmpty, level }) {
+    const st = this.state;
+    const events = [];
+    let base = ((LINE_SCORES[cleared] || 0) + (tspin ? (this.TSPIN_BONUS[cleared] || 0) : 0)) * level;
+    if (tspin) events.push({ type: 'tspin', lines: cleared });
+
+    if (cleared > 0) {
+      const difficult = cleared === 4 || tspin;
+      if (difficult && st.b2b) {
+        base *= this.B2B_FACTOR;
+        events.push({ type: 'b2b' });
+      }
+      st.b2b = difficult; // una limpieza simple corta la racha
+      st.combo++;
+    } else {
+      st.combo = 0; // sin líneas reinicia el combo; B2B no cambia
+    }
+
+    const mult = Math.max(1, st.combo);
+    if (st.combo >= 2) events.push({ type: 'combo', count: st.combo });
+
+    let bonus = 0;
+    if (cleared > 0 && boardEmpty) {
+      bonus = this.PERFECT_CLEAR_BONUS;
+      events.push({ type: 'perfect' });
+    }
+
+    return { points: Math.round(base * mult) + bonus, events };
+  },
+};
+
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next-canvas');
@@ -57,8 +100,120 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggle = document.getElementById('theme-toggle');
+const gameArea = document.querySelector('.game-area');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let lastMoveRotate = false; // true si la última acción de la pieza actual fue una rotación (T-Spin)
+
+// Animaciones de feedback: solo dibujan sobre el canvas, no conocen las reglas de puntuación.
+const Effects = {
+  active: [],
+  shake: { age: 0, dur: 300, amp: 0 },
+
+  trigger(events, info) {
+    for (const ev of events) {
+      if (ev.type === 'combo') {
+        this.active.push({ type: 'combo', count: ev.count, age: 0, dur: 900 });
+        this.shake = { age: 0, dur: 300, amp: Math.min(ev.count * 1.5, 8) };
+      } else if (ev.type === 'tspin') {
+        this.active.push({ type: 'tspin', lines: ev.lines, cells: info.tCells, age: 0, dur: 1000 });
+      } else if (ev.type === 'b2b') {
+        this.active.push({ type: 'b2b', age: 0, dur: 1000 });
+      } else if (ev.type === 'perfect') {
+        this.active.push({ type: 'perfect', age: 0, dur: 1600 });
+      }
+    }
+  },
+
+  update(dt) {
+    for (const e of this.active) e.age += dt;
+    this.active = this.active.filter(e => e.age < e.dur);
+    this.shake.age += dt;
+  },
+
+  clear() {
+    this.active = [];
+    this.shake = { age: 0, dur: 300, amp: 0 };
+  },
+
+  shakeOffset() {
+    const s = this.shake;
+    if (s.age >= s.dur || !s.amp) return { x: 0, y: 0 };
+    const k = s.amp * (1 - s.age / s.dur);
+    return { x: (Math.random() - 0.5) * 2 * k, y: (Math.random() - 0.5) * 2 * k };
+  },
+
+  text(c, str, x, y, size, color, alpha, scale) {
+    c.save();
+    c.globalAlpha = Math.max(0, alpha);
+    c.translate(x, y);
+    c.scale(scale, scale);
+    c.font = `800 ${size}px system-ui, sans-serif`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.lineWidth = 4;
+    c.strokeStyle = 'rgba(0,0,0,0.65)';
+    c.strokeText(str, 0, 0);
+    c.fillStyle = color;
+    c.shadowColor = color;
+    c.shadowBlur = 12;
+    c.fillText(str, 0, 0);
+    c.restore();
+  },
+
+  // Entrada con "pop" (1.4 → 1) y salida con fundido
+  pop(t) {
+    const scale = t < 0.15 ? 1.4 - 0.4 * (t / 0.15) : 1;
+    const alpha = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1;
+    return { scale, alpha };
+  },
+
+  draw(c) {
+    const W = COLS * BLOCK, H = ROWS * BLOCK;
+    for (const e of this.active) {
+      const t = e.age / e.dur;
+      const { scale, alpha } = this.pop(t);
+      if (e.type === 'combo') {
+        const n = e.count;
+        const size = Math.min(18 + n * 4, 44);
+        const color = `hsl(${Math.max(55 - n * 10, 0)}, 100%, ${Math.min(50 + n * 3, 65)}%)`;
+        this.text(c, `COMBO x${n}`, W / 2, H * 0.38 - t * 40, size, color, alpha, scale);
+      } else if (e.type === 'tspin') {
+        const color = COLORS[3];
+        // Pulso expansivo alrededor de las celdas de la T
+        const grow = t * 14;
+        c.save();
+        c.globalAlpha = Math.max(0, 0.9 * (1 - t));
+        c.strokeStyle = color;
+        c.shadowColor = color;
+        c.shadowBlur = 18;
+        c.lineWidth = 3;
+        for (const cell of e.cells) {
+          c.strokeRect(cell.x * BLOCK - grow, cell.y * BLOCK - grow, BLOCK + grow * 2, BLOCK + grow * 2);
+        }
+        c.restore();
+        const names = ['', ' SINGLE', ' DOUBLE', ' TRIPLE'];
+        const cx = e.cells.reduce((s, p) => s + p.x, 0) / e.cells.length * BLOCK + BLOCK / 2;
+        const cy = e.cells.reduce((s, p) => s + p.y, 0) / e.cells.length * BLOCK;
+        const tx = Math.min(Math.max(cx, 90), W - 90);
+        const ty = Math.min(Math.max(cy - t * 30, 20), H - 20);
+        this.text(c, `T-SPIN${e.lines ? names[e.lines] || '' : ''}`, tx, ty, 22, color, alpha, scale);
+      } else if (e.type === 'b2b') {
+        this.text(c, 'B2B', W / 2, H * 0.28 - t * 20, 30, '#ffca28', alpha, scale);
+      } else if (e.type === 'perfect') {
+        if (t < 0.45) {
+          const f = t / 0.45;
+          const g = c.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * f);
+          g.addColorStop(0, `rgba(255,255,255,${1 - f})`);
+          g.addColorStop(1, `rgba(255,236,130,${0.6 * (1 - f)})`);
+          c.fillStyle = g;
+          c.fillRect(0, 0, W, H);
+        }
+        this.text(c, 'PERFECT CLEAR', W / 2, H / 2, 34, '#ffffff', alpha, scale);
+      }
+    }
+  },
+};
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -99,9 +254,22 @@ function tryRotate() {
     if (!collide(rotated, current.x + kick, current.y)) {
       current.shape = rotated;
       current.x += kick;
+      lastMoveRotate = true;
       return;
     }
   }
+}
+
+// T-Spin: la T se bloquea tras una rotación con ≥3 de las 4 esquinas de su caja 3×3 ocupadas
+function isTSpin() {
+  if (current.type !== 3 || !lastMoveRotate) return false;
+  let filled = 0;
+  for (const [dx, dy] of [[0, 0], [2, 0], [0, 2], [2, 2]]) {
+    const nx = current.x + dx;
+    const ny = current.y + dy;
+    if (nx < 0 || nx >= COLS || ny >= ROWS || (ny >= 0 && board[ny][nx])) filled++;
+  }
+  return filled >= 3;
 }
 
 function merge() {
@@ -121,13 +289,7 @@ function clearLines() {
       r++;
     }
   }
-  if (cleared) {
-    lines += cleared;
-    score += (LINE_SCORES[cleared] || 0) * level;
-    level = Math.floor(lines / 10) + 1;
-    dropInterval = Math.max(100, 1000 - (level - 1) * 90);
-    updateHUD();
-  }
+  return cleared;
 }
 
 function ghostY() {
@@ -138,6 +300,7 @@ function ghostY() {
 
 function hardDrop() {
   const gy = ghostY();
+  if (gy > current.y) lastMoveRotate = false;
   score += (gy - current.y) * 2;
   current.y = gy;
   lockPiece();
@@ -146,6 +309,7 @@ function hardDrop() {
 function softDrop() {
   if (!collide(current.shape, current.x, current.y + 1)) {
     current.y++;
+    lastMoveRotate = false;
     score += 1;
     updateHUD();
   } else {
@@ -154,12 +318,36 @@ function softDrop() {
 }
 
 function lockPiece() {
+  const tspin = isTSpin();
+  const tCells = [];
+  if (current.type === 3) {
+    for (let r = 0; r < current.shape.length; r++)
+      for (let c = 0; c < current.shape[r].length; c++)
+        if (current.shape[r][c]) tCells.push({ x: current.x + c, y: current.y + r });
+  }
+
   merge();
-  clearLines();
+  const cleared = clearLines();
+  const boardEmpty = board.every(row => row.every(v => v === 0));
+
+  const res = Scoring.resolveTurn({ cleared, tspin, boardEmpty, level });
+  score += res.points;
+  lines += cleared;
+  level = Math.floor(lines / 10) + 1;
+  dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+  updateHUD();
+
+  Effects.trigger(res.events, { tCells });
+  syncB2B();
   spawn();
 }
 
+function syncB2B() {
+  gameArea.classList.toggle('b2b-active', Scoring.state.b2b);
+}
+
 function spawn() {
+  lastMoveRotate = false;
   current = next;
   next = randomPiece();
   if (collide(current.shape, current.x, current.y)) {
@@ -205,6 +393,9 @@ function drawGrid() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  const sh = Effects.shakeOffset();
+  ctx.translate(sh.x, sh.y);
   drawGrid();
 
   // board
@@ -223,6 +414,9 @@ function draw() {
   for (let r = 0; r < current.shape.length; r++)
     for (let c = 0; c < current.shape[r].length; c++)
       drawBlock(ctx, current.x + c, current.y + r, current.shape[r][c], BLOCK);
+
+  Effects.draw(ctx);
+  ctx.restore();
 }
 
 function drawNext() {
@@ -263,10 +457,12 @@ function loop(ts) {
   const dt = ts - lastTime;
   lastTime = ts;
   dropAccum += dt;
+  Effects.update(Math.min(dt, 100));
   if (dropAccum >= dropInterval) {
     dropAccum = 0;
     if (!collide(current.shape, current.x, current.y + 1)) {
       current.y++;
+      lastMoveRotate = false;
     } else {
       lockPiece();
     }
@@ -286,6 +482,9 @@ function init() {
   dropInterval = 1000;
   dropAccum = 0;
   lastTime = performance.now();
+  Scoring.reset();
+  Effects.clear();
+  syncB2B();
   next = randomPiece();
   spawn();
   updateHUD();
@@ -299,10 +498,10 @@ document.addEventListener('keydown', e => {
   if (paused || gameOver) return;
   switch (e.code) {
     case 'ArrowLeft':
-      if (!collide(current.shape, current.x - 1, current.y)) current.x--;
+      if (!collide(current.shape, current.x - 1, current.y)) { current.x--; lastMoveRotate = false; }
       break;
     case 'ArrowRight':
-      if (!collide(current.shape, current.x + 1, current.y)) current.x++;
+      if (!collide(current.shape, current.x + 1, current.y)) { current.x++; lastMoveRotate = false; }
       break;
     case 'ArrowDown':
       softDrop();
