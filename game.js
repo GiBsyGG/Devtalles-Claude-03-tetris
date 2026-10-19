@@ -4,16 +4,33 @@ const COLS = 10;
 const ROWS = 20;
 const BLOCK = 30;
 
-const COLORS = [
-  null,
-  '#4dd0e1', // I - cyan
-  '#ffd54f', // O - yellow
-  '#ba68c8', // T - purple
-  '#81c784', // S - green
-  '#e57373', // Z - red
-  '#90caf9', // J - azul pálido
-  '#ffb74d', // L - orange
-];
+// Paletas por tema; el índice 0 es null en ambas (0 = celda vacía)
+const PALETTES = {
+  dark: [
+    null,
+    '#4dd0e1', // I - cyan
+    '#ffd54f', // O - yellow
+    '#ba68c8', // T - purple
+    '#81c784', // S - green
+    '#e57373', // Z - red
+    '#90caf9', // J - azul pálido
+    '#ffb74d', // L - orange
+  ],
+  light: [
+    null,
+    '#00acc1', // I - cyan intenso
+    '#f9a825', // O - ámbar
+    '#8e24aa', // T - púrpura
+    '#2e9e4f', // S - verde
+    '#e53935', // Z - rojo
+    '#1e63d6', // J - azul
+    '#ef6c00', // L - naranja oscuro
+  ],
+};
+
+const THEME_KEY = 'tetris-theme';
+let COLORS = PALETTES.dark;
+let gridColor = '#22222e';
 
 const PIECES = [
   null,
@@ -39,6 +56,7 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
+const themeToggle = document.getElementById('theme-toggle');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 
@@ -169,7 +187,7 @@ function drawBlock(context, x, y, colorIndex, size, alpha) {
 }
 
 function drawGrid() {
-  ctx.strokeStyle = '#22222e';
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 0.5;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath();
@@ -300,5 +318,30 @@ document.addEventListener('keydown', e => {
 });
 
 restartBtn.addEventListener('click', init);
+
+function applyTheme(theme) {
+  const isLight = theme === 'light';
+  if (isLight) document.documentElement.dataset.theme = 'light';
+  else delete document.documentElement.dataset.theme;
+  COLORS = isLight ? PALETTES.light : PALETTES.dark;
+  gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+  const label = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
+  themeToggle.setAttribute('aria-label', label);
+  themeToggle.title = label;
+  themeToggle.setAttribute('aria-pressed', String(isLight));
+  // Repinta directamente: en pausa o game over el rAF no corre
+  if (board) { draw(); drawNext(); }
+}
+
+themeToggle.addEventListener('click', () => {
+  const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+  applyTheme(theme);
+  themeToggle.blur(); // evita que Space/Enter vuelvan a activar el botón
+});
+
+let savedTheme = 'dark';
+try { savedTheme = localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; } catch (e) {}
+applyTheme(savedTheme);
 
 init();
