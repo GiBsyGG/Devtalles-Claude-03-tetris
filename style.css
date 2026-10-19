@@ -207,6 +207,11 @@ body {
   display: none;
 }
 
+/* Oculta también la etiqueta cuando la vista previa no está activa */
+.queue-section:has(> #queue-canvas.hidden) {
+  display: none;
+}
+
 /* ---- Energía: barra que se llena al limpiar líneas ---- */
 .energy-bar {
   width: 120px;
