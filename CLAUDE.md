@@ -27,6 +27,7 @@ Three files, all logic in `game.js` (single script, global scope, `'use strict'`
 - Badges: `#b2b-badge` and `#slow-badge` live in `.badges` (stacked, B2B on top; `badge-pop` scale 1.05). Slow shows its badge via `slow-active`; `useAbility(3)` fires a one-shot `slow-glow` on `#board` (re-fired on every activation).
 - B2B halo is CSS: `syncB2B` toggles `b2b-active` on `.game-area` (`#b2b-badge`, `--b2b-glow`).
 
+- Records: `Records` (game.js) is pure logic (top 5 `{name,score}`, `bestCombo`, `maxLines`, localStorage key `tetris-records`). `endGame` calls `updateStats(maxCombo, lines)`; if `rankOf(score)>=0` it shows `#name-form` and sets `pendingScore` (saved by submit, or as "Anónimo" on restart). `renderRecords(highlight)` fills `#records-list`/`#records-stats` in the shared `#overlay` (hidden by `init`). Load ends with `init(); showStart()`: start screen = stopped game with `gameOver=true` and the restart button labelled "Jugar". `maxCombo` is tracked in `lockPiece`. Extra ids: `name-form`, `name-input`, `record-msg`, `records`, `records-list`, `records-stats`, `reset-records`.
 - Theming: CSS variables under `:root` (dark, default) and `[data-theme="light"]`; `applyTheme` in `game.js` swaps `COLORS` between `PALETTES.dark/light`, caches `--grid` into `gridColor`, repaints directly (rAF is stopped when paused/game over) and persists to `localStorage` key `tetris-theme`. A small inline script in `index.html`'s head applies the saved theme before first paint.
 
 ## Gotchas
