@@ -39,6 +39,7 @@ const PALETTES = {
 };
 
 const THEME_KEY = 'tetris-theme';
+const SKIN_KEY = 'tetris-skin';
 let COLORS = PALETTES.dark;
 let gridColor = '#22222e';
 
@@ -152,6 +153,7 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggle = document.getElementById('theme-toggle');
+const skinSelect = document.getElementById('skin-select');
 const gameArea = document.querySelector('.game-area');
 const titleEl = document.querySelector('.title');
 const titleLetters = titleEl.querySelectorAll('span');
@@ -512,15 +514,100 @@ function updateHUD() {
   levelEl.textContent = level;
 }
 
+// Rectángulo redondeado (path manual, sin depender de ctx.roundRect)
+function roundedRectPath(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+// Skins: `colors` (null = paleta del tema claro/oscuro) y `draw` de un bloque.
+// px/py = esquina en píxeles, s = tamaño de celda.
+const SKINS = {
+  retro: {
+    name: 'Retro',
+    colors: null,
+    draw(c, px, py, s, color) {
+      c.fillStyle = color;
+      c.fillRect(px + 1, py + 1, s - 2, s - 2);
+      c.fillStyle = 'rgba(255,255,255,0.12)';
+      c.fillRect(px + 1, py + 1, s - 2, Math.max(2, s * 4 / 30));
+    },
+  },
+  neon: {
+    name: 'Neon',
+    colors: [
+      null,
+      '#00f0ff', '#ffee00', '#d500f9', '#39ff14', '#ff1744', '#2979ff',
+      '#ff9100', '#ff4081', '#c6a27a', '#1de9b6', '#faff5c', '#cfd8dc',
+    ],
+    draw(c, px, py, s, color) {
+      const m = Math.max(1.5, s * 0.1);
+      c.save();
+      c.shadowColor = color;
+      c.shadowBlur = s * 0.4;
+      c.fillStyle = color;
+      c.globalAlpha *= 0.28;
+      c.fillRect(px + m, py + m, s - 2 * m, s - 2 * m);
+      c.globalAlpha /= 0.28;
+      c.strokeStyle = color;
+      c.lineWidth = Math.max(1, s * 0.07);
+      c.strokeRect(px + m, py + m, s - 2 * m, s - 2 * m);
+      c.restore();
+    },
+  },
+  pastel: {
+    name: 'Pastel',
+    colors: [
+      null,
+      '#a8e6ef', '#fff1a8', '#d9b8ec', '#b9e8b9', '#f7b8b8', '#b5d3f5',
+      '#fbd0a0', '#f8bbd0', '#d7c4b8', '#a7e3da', '#fff7b0', '#d5dee3',
+    ],
+    draw(c, px, py, s, color) {
+      const m = Math.max(1, s * 0.05);
+      roundedRectPath(c, px + m, py + m, s - 2 * m, s - 2 * m, s * 0.28);
+      c.fillStyle = color;
+      c.fill();
+      // brillo suave arriba-izquierda
+      c.fillStyle = 'rgba(255,255,255,0.35)';
+      roundedRectPath(c, px + s * 0.18, py + s * 0.14, s * 0.5, s * 0.16, s * 0.08);
+      c.fill();
+    },
+  },
+  pixel: {
+    name: 'Pixel art',
+    colors: null,
+    draw(c, px, py, s, color) {
+      const u = Math.max(1, Math.round(s / 6)); // "píxel" de la textura
+      const x = px + 1, y = py + 1, w = s - 2;
+      c.fillStyle = color;
+      c.fillRect(x, y, w, w);
+      // damero de texturas
+      c.fillStyle = 'rgba(255,255,255,0.18)';
+      for (let i = u; i < w - u; i += u)
+        for (let j = u; j < w - u; j += u)
+          if (((i / u) + (j / u)) % 2 === 0) c.fillRect(x + i, y + j, u, u);
+      // bisel: luz arriba/izquierda, sombra abajo/derecha
+      c.fillStyle = 'rgba(255,255,255,0.45)';
+      c.fillRect(x, y, w, u);
+      c.fillRect(x, y, u, w);
+      c.fillStyle = 'rgba(0,0,0,0.4)';
+      c.fillRect(x, y + w - u, w, u);
+      c.fillRect(x + w - u, y, u, w);
+    },
+  },
+};
+
+let skin = 'retro';
+
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  SKINS[skin].draw(context, x * size, y * size, size, COLORS[colorIndex]);
   context.globalAlpha = 1;
 }
 
@@ -1042,12 +1129,17 @@ document.addEventListener('keydown', e => {
 
 restartBtn.addEventListener('click', init);
 
+// Elige COLORS según skin + tema y cachea la rejilla (depende de ambos vía CSS)
+function applyPalette(isLight) {
+  COLORS = SKINS[skin].colors || (isLight ? PALETTES.light : PALETTES.dark);
+  gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+}
+
 function applyTheme(theme) {
   const isLight = theme === 'light';
   if (isLight) document.documentElement.dataset.theme = 'light';
   else delete document.documentElement.dataset.theme;
-  COLORS = isLight ? PALETTES.light : PALETTES.dark;
-  gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+  applyPalette(isLight);
   syncTitleColors();
   const label = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
   themeToggle.setAttribute('aria-label', label);
@@ -1064,8 +1156,28 @@ themeToggle.addEventListener('click', () => {
   themeToggle.blur(); // evita que Space/Enter vuelvan a activar el botón
 });
 
+// Skin: atributo data-skin en <html> (CSS) + colores/draw en canvas
+function applySkin(name) {
+  if (!SKINS[name]) name = 'retro';
+  skin = name;
+  document.documentElement.dataset.skin = name;
+  skinSelect.value = name;
+  applyPalette(document.documentElement.dataset.theme === 'light');
+  syncTitleColors();
+  // Repinta directamente: en pausa o game over el rAF no corre
+  if (board) { draw(); drawNext(); drawHold(); }
+}
+
+skinSelect.addEventListener('change', () => {
+  try { localStorage.setItem(SKIN_KEY, skinSelect.value); } catch (e) {}
+  applySkin(skinSelect.value);
+  skinSelect.blur(); // evita que las flechas cambien el skin en pleno juego
+});
+
 let savedTheme = 'dark';
 try { savedTheme = localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; } catch (e) {}
+try { const s = localStorage.getItem(SKIN_KEY); if (SKINS[s]) skin = s; } catch (e) {}
 applyTheme(savedTheme);
+applySkin(skin);
 
 showStartScreen('main'); // el juego arranca al pulsar Jugar
