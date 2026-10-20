@@ -71,12 +71,6 @@
           <canvas id="next-canvas" width="120" height="120"></canvas>
         </div>
 
-        <div class="panel-section records">
-          <span class="label">RECORDS</span>
-          <ol id="records-list" class="records-list"></ol>
-          <p id="records-stats" class="records-stats"></p>
-        </div>
-
         <div class="panel-section controls">
           <span class="label">CONTROLS</span>
           <ul>
@@ -106,7 +100,24 @@
           <p id="overlay-stats" class="records-stats"></p>
         </div>
         <button id="restart-btn">Reiniciar</button>
+        <button id="home-btn" type="button" class="link-btn">Pantalla de inicio</button>
         <button id="reset-records-btn" type="button" class="link-btn">Resetear records</button>
+      </div>
+    </div>
+
+    <div id="start-screen" class="overlay">
+      <div class="overlay-box">
+        <p id="start-title">TETRIS</p>
+        <div id="start-main" class="start-main">
+          <button id="play-btn" type="button">Jugar</button>
+          <button id="view-records-btn" type="button" class="link-btn">Ver records</button>
+        </div>
+        <div id="start-records-wrap" class="hidden">
+          <ol id="start-records" class="records-list"></ol>
+          <p id="start-stats" class="records-stats"></p>
+          <button id="start-reset-btn" type="button" class="link-btn">Resetear records</button>
+          <button id="start-back-btn" type="button" class="link-btn">Volver</button>
+        </div>
       </div>
     </div>
 

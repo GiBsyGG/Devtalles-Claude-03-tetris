@@ -559,3 +559,51 @@ kbd {
 .link-btn:hover {
   opacity: 1;
 }
+
+/* ---- Pantalla de inicio ---- */
+#start-screen {
+  z-index: 3;
+}
+
+#start-title {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: var(--accent);
+  margin: 0;
+}
+
+.start-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+#play-btn {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  padding: 10px 36px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+#play-btn:hover {
+  background: var(--accent-hover);
+}
+
+#start-records-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+#start-records-wrap.hidden,
+.start-main.hidden {
+  display: none;
+}
