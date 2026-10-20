@@ -400,7 +400,7 @@ kbd {
   color: var(--accent);
 }
 
-#restart-btn {
+#restart-btn, #play-btn, #save-btn {
   margin-top: 8px;
   background: var(--accent);
   color: var(--accent-text);
@@ -414,7 +414,7 @@ kbd {
   transition: background 0.15s;
 }
 
-#restart-btn:hover {
+#restart-btn:hover, #play-btn:hover, #save-btn:hover {
   background: var(--accent-hover);
 }
 
@@ -533,11 +533,24 @@ kbd {
 }
 
 .link-btn {
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   color: var(--muted);
-  text-decoration: underline;
+  padding: 6px 16px;
   cursor: pointer;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 12px;
+  letter-spacing: 1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.link-btn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+#save-btn {
+  margin-top: 0;
+  padding: 6px 16px;
 }
