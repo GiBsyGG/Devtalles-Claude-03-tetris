@@ -28,6 +28,7 @@ Three files, all logic in `game.js` (single script, global scope, `'use strict'`
 - B2B halo is CSS: `syncB2B` toggles `b2b-active` on `.game-area` (`#b2b-badge`, `--b2b-glow`).
 
 - Theming: CSS variables under `:root` (dark, default) and `[data-theme="light"]`; `applyTheme` in `game.js` swaps `COLORS` between `PALETTES.dark/light`, caches `--grid` into `gridColor`, repaints directly (rAF is stopped when paused/game over) and persists to `localStorage` key `tetris-theme`. A small inline script in `index.html`'s head applies the saved theme before first paint.
+- Records: `Records` (game.js) is pure logic over localStorage `tetris-records` (`{entries, bestCombo, maxLines}`, top 5 by score; `qualifies`, `add` returns index, `noteGame`, `clear`); last name in `tetris-player`. `maxCombo` is tracked in `lockPiece` from `Scoring.state.combo` (only >=2) and reset in `init`. On load the game does NOT start: `gameOver = true` + `#start-screen` (Jugar / Enter -> `startGame` -> `init`). `endGame` calls `noteGame`, shows `#record-form` if `qualifies`, and `renderRecords(container, highlight)` fills `#overlay-records`; `saveRecord` adds + highlights (restart button also calls it, so a pending record is not lost). Keydown ignores everything when target is `#name-input` or the start screen is visible. Extra ids: `start-screen`, `start-records`, `play-btn`, `clear-records-btn`, `overlay-records`, `record-form`, `name-input`, `save-btn`.
 
 ## Gotchas
 
