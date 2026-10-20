@@ -179,6 +179,7 @@ try {
   const n = parseInt(localStorage.getItem(START_LEVEL_KEY), 10);
   if (n >= 1 && n <= MAX_START_LEVEL) startLevel = n;
 } catch (e) {}
+let initialLevel = 1; // nivel con el que empezó la partida actual (fijado en init)
 let pauseView = null; // menú de pausa: null (cerrado) | 'main' | 'controls'
 let pauseSel = 0; // índice seleccionado en PAUSE_ACTIONS
 const heldKeys = new Set(); // teclas físicamente pulsadas ahora
@@ -426,7 +427,7 @@ function lockPiece() {
   const res = Scoring.resolveTurn({ cleared, tspin, boardEmpty, level });
   score += res.points;
   lines += cleared;
-  level = Math.max(startLevel, Math.floor(lines / 10) + 1);
+  level = Math.max(initialLevel, Math.floor(lines / 10) + 1);
   dropInterval = Math.max(100, 1000 - (level - 1) * 90);
   Abilities.onLock(cleared);
   updateHUD();
@@ -694,12 +695,6 @@ function endGame() {
   overlay.classList.remove('hidden');
 }
 
-function togglePause() {
-  if (gameOver) return;
-  if (paused) closePauseMenu();
-  else openPauseMenu();
-}
-
 function showPauseView(view) {
   pauseView = view;
   pauseMain.classList.toggle('hidden', view !== 'main');
@@ -725,6 +720,7 @@ function closePauseMenu() {
   pauseMenu.classList.add('hidden');
   blockedKeys = new Set(heldKeys); // ignora lo que sigue pulsado hasta que se suelte
   lastTime = performance.now(); // evita un dt enorme al reanudar
+  cancelAnimationFrame(animId);
   loop(lastTime);
 }
 
@@ -765,6 +761,7 @@ function handlePauseKey(e) {
 
 pauseMenu.addEventListener('click', e => {
   if (!pauseView) return;
+  if (pauseView === 'controls') { showPauseView('main'); return; }
   const step = e.target.closest('[data-step]');
   const li = e.target.closest('#pause-main > li');
   if (li) {
@@ -811,7 +808,8 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = startLevel;
+  initialLevel = startLevel;
+  level = initialLevel;
   paused = false;
   gameOver = false;
   dropInterval = Math.max(100, 1000 - (level - 1) * 90);
