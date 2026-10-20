@@ -87,7 +87,8 @@ Después abre `http://localhost:8000` en el navegador.
 | `↑` o `X` | Rotar la pieza en sentido horario |
 | `↓`       | Soft drop (bajar más rápido)      |
 | `Espacio` | Hard drop (caída instantánea)     |
-| `P`       | Pausar / reanudar                 |
+| `P` / `Esc` | Menú de pausa (Reanudar, Reiniciar, Ver controles, Nivel inicial 1–15) |
+| `↑` `↓` `Enter` | Navegar el menú de pausa (también con el ratón; `←` `→` cambian el nivel inicial) |
 
 ---
 
