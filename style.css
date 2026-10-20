@@ -460,3 +460,33 @@ kbd {
 #theme-toggle .icon-moon { display: none; }
 [data-theme="light"] #theme-toggle .icon-sun { display: none; }
 [data-theme="light"] #theme-toggle .icon-moon { display: block; }
+
+/* ---- Skins ---- */
+[data-skin="neon"],
+[data-skin="neon"][data-theme="light"] {
+  --board-bg: #000;
+  --grid: #12122a;
+}
+
+[data-skin="pastel"] { --grid: #2a2a3a; }
+[data-skin="pastel"][data-theme="light"] { --grid: #eceff7; }
+
+#skin-select {
+  position: fixed;
+  top: 16px;
+  right: 72px;
+  height: 44px;
+  padding: 0 12px;
+  background: var(--board-bg);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  font: inherit;
+  cursor: pointer;
+}
+
+#skin-select:hover,
+#skin-select:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}

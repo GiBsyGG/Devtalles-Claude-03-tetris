@@ -27,6 +27,8 @@ Three files, all logic in `game.js` (single script, global scope, `'use strict'`
 - Badges: `#b2b-badge` and `#slow-badge` live in `.badges` (stacked, B2B on top; `badge-pop` scale 1.05). Slow shows its badge via `slow-active`; `useAbility(3)` fires a one-shot `slow-glow` on `#board` (re-fired on every activation).
 - B2B halo is CSS: `syncB2B` toggles `b2b-active` on `.game-area` (`#b2b-badge`, `--b2b-glow`).
 
+- Skins: `SKINS` (game.js) maps retro/neon/pastel/pixel to `draw(c, px, py, s, color)` (+ optional `palette` overriding theme palette); `drawBlock` dispatches via `skin` var inside save/restore. `applySkin` sets `data-skin` on `<html>`, `#skin-select` (blurred after change), persists `tetris-skin`; calls `applyTheme` (which picks `COLORS`). Inline head script restores skin; CSS overrides `--board-bg`/`--grid` per skin.
+
 - Theming: CSS variables under `:root` (dark, default) and `[data-theme="light"]`; `applyTheme` in `game.js` swaps `COLORS` between `PALETTES.dark/light`, caches `--grid` into `gridColor`, repaints directly (rAF is stopped when paused/game over) and persists to `localStorage` key `tetris-theme`. A small inline script in `index.html`'s head applies the saved theme before first paint.
 
 ## Gotchas
