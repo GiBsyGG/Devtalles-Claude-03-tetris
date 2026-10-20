@@ -10,6 +10,11 @@
     try {
       if (localStorage.getItem('tetris-theme') === 'light') document.documentElement.dataset.theme = 'light';
     } catch (e) {}
+    // Igual con la skin guardada
+    try {
+      var s = localStorage.getItem('tetris-skin');
+      if (['retro', 'neon', 'pastel', 'pixel'].indexOf(s) >= 0) document.documentElement.dataset.skin = s;
+    } catch (e) {}
   </script>
 </head>
 <body>
@@ -22,6 +27,13 @@
       <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
     </svg>
   </button>
+
+  <select id="skin-select" tabindex="-1" aria-label="Skin visual" title="Skin visual">
+    <option value="retro">Retro</option>
+    <option value="neon">Neón</option>
+    <option value="pastel">Pastel</option>
+    <option value="pixel">Pixel</option>
+  </select>
 
   <div class="wrapper">
     <h1 class="title" aria-label="TETRIS"><span aria-hidden="true">T</span><span aria-hidden="true">E</span><span aria-hidden="true">T</span><span aria-hidden="true">R</span><span aria-hidden="true">I</span><span aria-hidden="true">S</span></h1>

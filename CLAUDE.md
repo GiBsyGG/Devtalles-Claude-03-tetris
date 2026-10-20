@@ -28,6 +28,7 @@ Three files, all logic in `game.js` (single script, global scope, `'use strict'`
 - B2B halo is CSS: `syncB2B` toggles `b2b-active` on `.game-area` (`#b2b-badge`, `--b2b-glow`).
 
 - Theming: CSS variables under `:root` (dark, default) and `[data-theme="light"]`; `applyTheme` in `game.js` swaps `COLORS` between `PALETTES.dark/light`, caches `--grid` into `gridColor`, repaints directly (rAF is stopped when paused/game over) and persists to `localStorage` key `tetris-theme`. A small inline script in `index.html`'s head applies the saved theme before first paint.
+- Skins: `SKINS` (game.js) = `{label, palette(theme), drawBlock(c,x,y,ci,size), grid?}` for `retro` (default), `neon`, `pastel`, `pixel`. Global `drawBlock` wraps the skin's in `save/restore` with `globalAlpha` set (skin code must multiply from `c.globalAlpha`, no manual reset needed). `syncSkinColors` sets `COLORS`/`gridColor` from skin + theme (used by `applyTheme` and `applySkin`). `applySkin` sets `data-skin` on `<html>`, repaints board/next/hold/queue directly, persists to `localStorage` `tetris-skin`; the `#skin-select` change handler blurs it. Neon forces black canvas bg via CSS `[data-skin="neon"]`. Head inline script pre-applies `data-skin`. Extra DOM id: `skin-select`.
 
 ## Gotchas
 

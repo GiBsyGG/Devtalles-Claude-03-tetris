@@ -152,6 +152,7 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggle = document.getElementById('theme-toggle');
+const skinSelect = document.getElementById('skin-select');
 const gameArea = document.querySelector('.game-area');
 const titleEl = document.querySelector('.title');
 const titleLetters = titleEl.querySelectorAll('span');
@@ -486,16 +487,120 @@ function updateHUD() {
   levelEl.textContent = level;
 }
 
+// ---- Skins: cada una define paleta por tema y cómo se pinta un bloque ----
+const SKIN_KEY = 'tetris-skin';
+const NEON_PALETTE = [
+  null,
+  '#00f0ff', '#fff700', '#d400ff', '#39ff14', '#ff1744', '#2979ff',
+  '#ff9100', '#ff2d95', '#c6a15b', '#00ffc8', '#f4ff52', '#b7c8ff',
+];
+const PASTEL_PALETTES = {
+  dark: [
+    null,
+    '#a8e6ef', '#fff1b0', '#d9b8f0', '#b9e8bf', '#f5b5b5', '#b8d4f5',
+    '#f9d1a0', '#f7bcd2', '#d3c1b8', '#a9e0d9', '#fff7b8', '#d3dde2',
+  ],
+  light: [
+    null,
+    '#7fd6e3', '#f5d77a', '#c493e0', '#8fd29a', '#ef9a9a', '#90b8ee',
+    '#f2b87a', '#f292b5', '#bba397', '#7fcfc5', '#f0e27a', '#aebdc6',
+  ],
+};
+
+// Rectángulo con esquinas redondeadas (arcTo)
+function roundRectPath(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+// drawBlock de cada skin corre entre save()/restore() (lo hace el dispatcher)
+const SKINS = {
+  retro: {
+    label: 'Retro',
+    palette: (theme) => PALETTES[theme],
+    drawBlock(c, x, y, ci, size) {
+      c.fillStyle = COLORS[ci];
+      c.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+      c.fillStyle = 'rgba(255,255,255,0.12)';
+      c.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+    },
+  },
+  neon: {
+    label: 'Neón',
+    palette: () => NEON_PALETTE,
+    grid: '#1b1b2b',
+    drawBlock(c, x, y, ci, size) {
+      const color = COLORS[ci];
+      const base = c.globalAlpha;
+      const px = x * size + 2, py = y * size + 2, s = size - 4;
+      c.shadowColor = color;
+      c.shadowBlur = 12;
+      c.fillStyle = color;
+      c.globalAlpha = base * 0.35;
+      c.fillRect(px, py, s, s);
+      c.globalAlpha = base;
+      c.shadowBlur = 8;
+      c.strokeStyle = color;
+      c.lineWidth = 2;
+      c.strokeRect(px + 1, py + 1, s - 2, s - 2);
+      c.shadowBlur = 0;
+      c.fillStyle = '#fff';
+      c.globalAlpha = base * 0.5;
+      c.fillRect(px + 6, py + 6, s - 12, s - 12);
+    },
+  },
+  pastel: {
+    label: 'Pastel',
+    palette: (theme) => PASTEL_PALETTES[theme],
+    drawBlock(c, x, y, ci, size) {
+      const px = x * size + 1.5, py = y * size + 1.5, s = size - 3;
+      roundRectPath(c, px, py, s, s, 7);
+      c.fillStyle = COLORS[ci];
+      c.fill();
+      c.lineWidth = 1.5;
+      c.strokeStyle = 'rgba(255,255,255,0.7)';
+      c.stroke();
+      roundRectPath(c, px + 4, py + 3, s - 8, 5, 2.5);
+      c.fillStyle = 'rgba(255,255,255,0.35)';
+      c.fill();
+    },
+  },
+  pixel: {
+    label: 'Pixel',
+    palette: (theme) => PALETTES[theme],
+    drawBlock(c, x, y, ci, size) {
+      const px = x * size + 1, py = y * size + 1, s = size - 2, b = 4;
+      c.fillStyle = COLORS[ci];
+      c.fillRect(px, py, s, s);
+      // bisel: luz arriba/izquierda, sombra abajo/derecha
+      c.fillStyle = 'rgba(255,255,255,0.4)';
+      c.fillRect(px, py, s, b);
+      c.fillRect(px, py, b, s);
+      c.fillStyle = 'rgba(0,0,0,0.35)';
+      c.fillRect(px, py + s - b, s, b);
+      c.fillRect(px + s - b, py, b, s);
+      // puntos de tramado (dither) en el interior
+      c.fillStyle = 'rgba(0,0,0,0.18)';
+      for (let j = b; j < s - b; j += 4)
+        for (let i = b + ((j / 4) % 2 ? 0 : 2); i < s - b; i += 4)
+          c.fillRect(px + i, py + j, 2, 2);
+    },
+  },
+};
+
+let currentSkin = 'retro';
+
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
+  context.save();
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
-  context.globalAlpha = 1;
+  SKINS[currentSkin].drawBlock(context, x, y, colorIndex, size);
+  context.restore(); // restaura shadowBlur/globalAlpha/estilos
 }
 
 function drawGrid() {
@@ -781,19 +886,26 @@ document.addEventListener('keydown', e => {
 
 restartBtn.addEventListener('click', init);
 
+// Recalcula COLORS y gridColor según skin + tema (neón fuerza fondo oscuro vía CSS)
+function syncSkinColors() {
+  const skin = SKINS[currentSkin];
+  const light = document.documentElement.dataset.theme === 'light';
+  COLORS = skin.palette(light ? 'light' : 'dark');
+  gridColor = skin.grid || getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+}
+
 function applyTheme(theme) {
   const isLight = theme === 'light';
   if (isLight) document.documentElement.dataset.theme = 'light';
   else delete document.documentElement.dataset.theme;
-  COLORS = isLight ? PALETTES.light : PALETTES.dark;
-  gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+  syncSkinColors();
   syncTitleColors();
   const label = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
   themeToggle.setAttribute('aria-label', label);
   themeToggle.title = label;
   themeToggle.setAttribute('aria-pressed', String(isLight));
   // Repinta directamente: en pausa o game over el rAF no corre
-  if (board) { draw(); drawNext(); drawHold(); }
+  if (board) { draw(); drawNext(); drawHold(); drawQueue(); }
 }
 
 themeToggle.addEventListener('click', () => {
@@ -806,5 +918,25 @@ themeToggle.addEventListener('click', () => {
 let savedTheme = 'dark';
 try { savedTheme = localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; } catch (e) {}
 applyTheme(savedTheme);
+
+function applySkin(name) {
+  if (!SKINS[name]) name = 'retro';
+  currentSkin = name;
+  document.documentElement.dataset.skin = name;
+  skinSelect.value = name;
+  syncSkinColors();
+  syncTitleColors();
+  // Repinta directamente: en pausa o game over el rAF no corre
+  if (board) { draw(); drawNext(); drawHold(); drawQueue(); }
+}
+
+skinSelect.addEventListener('change', () => {
+  try { localStorage.setItem(SKIN_KEY, skinSelect.value); } catch (e) {}
+  applySkin(skinSelect.value);
+  skinSelect.blur(); // evita que Space/flechas manejen el select
+});
+let savedSkin = 'retro';
+try { savedSkin = localStorage.getItem(SKIN_KEY) || 'retro'; } catch (e) {}
+applySkin(savedSkin);
 
 init();

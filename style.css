@@ -460,3 +460,31 @@ kbd {
 #theme-toggle .icon-moon { display: none; }
 [data-theme="light"] #theme-toggle .icon-sun { display: none; }
 [data-theme="light"] #theme-toggle .icon-moon { display: block; }
+
+/* ---- Selector de skin ---- */
+#skin-select {
+  position: fixed;
+  top: 16px;
+  right: 70px;
+  height: 44px;
+  padding: 0 10px;
+  background: var(--board-bg);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  font: inherit;
+  cursor: pointer;
+}
+
+#skin-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Neón: tablero y vistas previas siempre oscuros, sin importar el tema */
+[data-skin="neon"] #board,
+[data-skin="neon"] #next-canvas,
+[data-skin="neon"] #hold-canvas,
+[data-skin="neon"] #queue-canvas {
+  background: #000;
+}
