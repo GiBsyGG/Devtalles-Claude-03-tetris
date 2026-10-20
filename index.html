@@ -94,6 +94,38 @@
       </div>
     </div>
 
+    <div id="pause-menu" class="overlay hidden">
+      <div class="overlay-box">
+        <p id="pause-title">PAUSA</p>
+        <div id="pause-main" class="pause-list">
+          <button type="button" class="pause-item" data-action="resume">Reanudar</button>
+          <button type="button" class="pause-item" data-action="restart">Reiniciar</button>
+          <button type="button" class="pause-item" data-action="controls">Ver controles</button>
+          <div class="pause-item pause-level" data-action="level" tabindex="0">
+            <span>Nivel inicial</span>
+            <span class="level-picker">
+              <button type="button" class="level-btn" data-step="-1" tabindex="-1" aria-label="Bajar nivel inicial">&minus;</button>
+              <span id="start-level">1</span>
+              <button type="button" class="level-btn" data-step="1" tabindex="-1" aria-label="Subir nivel inicial">+</button>
+            </span>
+          </div>
+          <p class="pause-hint">Aplica al reiniciar</p>
+        </div>
+        <div id="pause-controls" class="pause-list hidden">
+          <ul class="ability-list">
+            <li><kbd>←</kbd><kbd>→</kbd> mover</li>
+            <li><kbd>↑</kbd><kbd>X</kbd> rotar</li>
+            <li><kbd>↓</kbd> bajar</li>
+            <li><kbd>Space</kbd> caída</li>
+            <li><kbd>C</kbd><kbd>Shift</kbd> guardar</li>
+            <li><kbd>E</kbd> habilidad</li>
+            <li><kbd>P</kbd><kbd>Esc</kbd> pausa</li>
+          </ul>
+          <button type="button" class="pause-item" data-action="back">Volver</button>
+        </div>
+      </div>
+    </div>
+
     <div id="ability-menu" class="overlay hidden">
       <div class="overlay-box">
         <p id="ability-title">HABILIDAD</p>

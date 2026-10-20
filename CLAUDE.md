@@ -27,6 +27,7 @@ Three files, all logic in `game.js` (single script, global scope, `'use strict'`
 - Badges: `#b2b-badge` and `#slow-badge` live in `.badges` (stacked, B2B on top; `badge-pop` scale 1.05). Slow shows its badge via `slow-active`; `useAbility(3)` fires a one-shot `slow-glow` on `#board` (re-fired on every activation).
 - B2B halo is CSS: `syncB2B` toggles `b2b-active` on `.game-area` (`#b2b-badge`, `--b2b-glow`).
 
+- Pause menu (P / Esc): `togglePause` shows `#pause-menu` (views `pauseView` main|controls; items `.pause-item[data-action]`: resume, restart, controls, level). While `paused`, keydown goes only to `handlePauseKey` (game inputs blocked). `startLevel` (1–15, `#start-level`) is used by `init` and `lockPiece` (`level = startLevel + floor(lines/10)`, `dropIntervalFor`). `#overlay` is now game-over only.
 - Theming: CSS variables under `:root` (dark, default) and `[data-theme="light"]`; `applyTheme` in `game.js` swaps `COLORS` between `PALETTES.dark/light`, caches `--grid` into `gridColor`, repaints directly (rAF is stopped when paused/game over) and persists to `localStorage` key `tetris-theme`. A small inline script in `index.html`'s head applies the saved theme before first paint.
 
 ## Gotchas
