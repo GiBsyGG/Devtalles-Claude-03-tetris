@@ -164,6 +164,12 @@ const abilityMenu = document.getElementById('ability-menu');
 const abilityMsg = document.getElementById('ability-msg');
 const menuMain = document.getElementById('menu-main');
 const menuSwap = document.getElementById('menu-swap');
+const pauseMenu = document.getElementById('pause-menu');
+const pauseMain = document.getElementById('pause-main');
+const pauseControls = document.getElementById('pause-controls');
+const pauseHint = document.getElementById('pause-hint');
+const pauseLevelEl = document.getElementById('pause-level');
+const pauseItems = pauseMain.querySelectorAll('li');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let queue = []; // piezas forzadas (single/hueca) que salen antes del sorteo aleatorio
@@ -171,6 +177,10 @@ let hold = null; // tipo de la pieza guardada (null = vacío)
 let canHold = true; // un solo hold por pieza; se libera al bloquear
 let lastMoveRotate = false; // true si la última acción de la pieza actual fue una rotación (T-Spin)
 let menu = null; // menú de habilidades: null (cerrado) | 'main' | 'swap'
+let pauseView = null; // menú de pausa: null (cerrado) | 'main' | 'controls'
+let pauseSel = 0; // opción resaltada del menú de pausa
+const MAX_START_LEVEL = 15;
+let startLevel = 1; // offset de nivel: level = floor(lines/10) + startLevel
 
 // Animaciones de feedback: solo dibujan sobre el canvas, no conocen las reglas de puntuación.
 const Effects = {
@@ -407,8 +417,8 @@ function lockPiece() {
   const res = Scoring.resolveTurn({ cleared, tspin, boardEmpty, level });
   score += res.points;
   lines += cleared;
-  level = Math.floor(lines / 10) + 1;
-  dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+  level = Math.floor(lines / 10) + startLevel;
+  dropInterval = intervalFor(level);
   Abilities.onLock(cleared);
   updateHUD();
   syncEnergy();
@@ -675,20 +685,75 @@ function endGame() {
   overlay.classList.remove('hidden');
 }
 
+function intervalFor(lvl) {
+  return Math.max(100, 1000 - (lvl - 1) * 90);
+}
+
 function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
-    overlay.classList.add('hidden');
+    pauseView = null;
+    pauseMenu.classList.add('hidden');
     lastTime = performance.now();
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = 'Presiona P para continuar';
-    overlay.classList.remove('hidden');
+    showPauseView('main');
+    pauseMenu.classList.remove('hidden');
   }
 }
+
+function showPauseView(view) {
+  pauseView = view;
+  pauseMain.classList.toggle('hidden', view !== 'main');
+  pauseControls.classList.toggle('hidden', view !== 'controls');
+  pauseHint.classList.toggle('hidden', view !== 'main');
+  if (view === 'main') { pauseSel = 0; syncPauseMenu(); }
+}
+
+function syncPauseMenu() {
+  pauseLevelEl.textContent = startLevel;
+  pauseItems.forEach((li, i) => li.classList.toggle('selected', i === pauseSel));
+}
+
+function changeStartLevel(d) {
+  startLevel = Math.min(MAX_START_LEVEL, Math.max(1, startLevel + d));
+  syncPauseMenu();
+}
+
+function pauseAction(i) {
+  pauseSel = i;
+  if (i === 0) togglePause();
+  else if (i === 1) init(); // init limpia paused y oculta el menú
+  else if (i === 2) showPauseView('controls');
+  else syncPauseMenu(); // 4: el nivel se ajusta con ← →
+}
+
+function handlePauseKey(e) {
+  if (e.code === 'Escape' || e.code === 'KeyP') {
+    if (e.repeat) return;
+    if (pauseView === 'controls') showPauseView('main');
+    else togglePause();
+    return;
+  }
+  if (pauseView !== 'main') return;
+  const last = pauseItems.length - 1;
+  switch (e.code) {
+    case 'ArrowUp': e.preventDefault(); pauseSel = pauseSel > 0 ? pauseSel - 1 : last; syncPauseMenu(); break;
+    case 'ArrowDown': e.preventDefault(); pauseSel = pauseSel < last ? pauseSel + 1 : 0; syncPauseMenu(); break;
+    case 'ArrowLeft': e.preventDefault(); if (pauseSel === 3) changeStartLevel(-1); break;
+    case 'ArrowRight': e.preventDefault(); if (pauseSel === 3) changeStartLevel(1); break;
+    case 'Enter':
+    case 'NumpadEnter': e.preventDefault(); if (!e.repeat) pauseAction(pauseSel); break;
+    default: {
+      const m = /^(?:Digit|Numpad)([1-4])$/.exec(e.code);
+      if (m && !e.repeat) pauseAction(Number(m[1]) - 1);
+    }
+  }
+}
+
+pauseItems.forEach((li, i) => li.addEventListener('click', () => { if (pauseView === 'main') pauseAction(i); }));
 
 function loop(ts) {
   const dt = ts - lastTime;
@@ -719,10 +784,10 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = 1;
+  level = startLevel;
   paused = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = intervalFor(level);
   dropAccum = 0;
   lastTime = performance.now();
   Scoring.reset();
@@ -730,6 +795,8 @@ function init() {
   Abilities.reset();
   menu = null;
   abilityMenu.classList.add('hidden');
+  pauseView = null;
+  pauseMenu.classList.add('hidden');
   syncEnergy();
   syncB2B();
   titleEl.classList.remove('tetris-celebrate');
@@ -747,7 +814,8 @@ function init() {
 
 document.addEventListener('keydown', e => {
   if (menu) { handleMenuKey(e); return; }
-  if (e.code === 'KeyP') { togglePause(); return; }
+  if (pauseView) { handlePauseKey(e); return; }
+  if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) { togglePause(); return; }
   if (paused || gameOver) return;
   switch (e.code) {
     case 'KeyE':
