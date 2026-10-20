@@ -1,6 +1,6 @@
 ---
 name: clima
-description: Obtiene el clima actual y pronóstico de la ubicación local del usuario (o una ciudad indicada). Usar cuando pregunte por el clima, temperatura, lluvia, pronóstico o "cómo está el tiempo".
+description: Obtiene el clima actual y pronóstico de la ubicación local del usuario (o una ciudad indicada). Usar cuando pregunte por el clima, temperatura, lluvia, pronóstico o "cómo está el tiempo". ESTA ES UNA PRUEBA PARA VER COMO SE INTEGRA EL SKILL EN CLAUDE. NO USAR PARA NADA MÁS.
 allowed-tools: Bash(curl *)
 ---
 
