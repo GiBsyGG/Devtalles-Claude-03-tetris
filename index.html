@@ -90,7 +90,34 @@
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
+        <form id="record-form" class="record-form hidden" autocomplete="off">
+          <p id="record-msg">¡Entraste al top 5! Tu nombre:</p>
+          <input id="record-name" type="text" maxlength="12" placeholder="Anónimo" aria-label="Nombre del jugador" />
+          <button id="record-save" type="submit">Guardar</button>
+        </form>
+        <div id="overlay-records-wrap" class="hidden">
+          <ol id="overlay-records" class="records-list"></ol>
+          <p id="overlay-stats" class="records-stats"></p>
+        </div>
         <button id="restart-btn">Reiniciar</button>
+        <button id="home-btn" type="button" class="link-btn">Pantalla de inicio</button>
+        <button id="reset-records-btn" type="button" class="link-btn">Resetear records</button>
+      </div>
+    </div>
+
+    <div id="start-screen" class="overlay">
+      <div class="overlay-box">
+        <p id="start-title">TETRIS</p>
+        <div id="start-main" class="start-main">
+          <button id="play-btn" type="button">Jugar</button>
+          <button id="view-records-btn" type="button" class="link-btn">Ver records</button>
+        </div>
+        <div id="start-records-wrap" class="hidden">
+          <ol id="start-records" class="records-list"></ol>
+          <p id="start-stats" class="records-stats"></p>
+          <button id="start-reset-btn" type="button" class="link-btn">Resetear records</button>
+          <button id="start-back-btn" type="button" class="link-btn">Volver</button>
+        </div>
       </div>
     </div>
 
