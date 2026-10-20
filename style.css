@@ -460,3 +460,102 @@ kbd {
 #theme-toggle .icon-moon { display: none; }
 [data-theme="light"] #theme-toggle .icon-sun { display: none; }
 [data-theme="light"] #theme-toggle .icon-moon { display: block; }
+
+/* ---- Records ---- */
+.records-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+}
+
+.records-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.records-list li .rec-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90px;
+}
+
+.records-list li.empty {
+  opacity: 0.4;
+}
+
+.records-list li.highlight {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.records-stats {
+  margin: 6px 0 0;
+  font-size: 11px;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+.record-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.record-form.hidden,
+#overlay-records-wrap.hidden,
+.link-btn.hidden {
+  display: none;
+}
+
+#record-msg {
+  margin: 0;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+#record-name {
+  width: 140px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+}
+
+#record-save {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  font-size: 11px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  opacity: 1;
+}

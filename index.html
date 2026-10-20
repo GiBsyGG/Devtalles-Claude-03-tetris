@@ -71,6 +71,12 @@
           <canvas id="next-canvas" width="120" height="120"></canvas>
         </div>
 
+        <div class="panel-section records">
+          <span class="label">RECORDS</span>
+          <ol id="records-list" class="records-list"></ol>
+          <p id="records-stats" class="records-stats"></p>
+        </div>
+
         <div class="panel-section controls">
           <span class="label">CONTROLS</span>
           <ul>
@@ -90,7 +96,17 @@
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
+        <form id="record-form" class="record-form hidden" autocomplete="off">
+          <p id="record-msg">¡Entraste al top 5! Tu nombre:</p>
+          <input id="record-name" type="text" maxlength="12" placeholder="Anónimo" aria-label="Nombre del jugador" />
+          <button id="record-save" type="submit">Guardar</button>
+        </form>
+        <div id="overlay-records-wrap" class="hidden">
+          <ol id="overlay-records" class="records-list"></ol>
+          <p id="overlay-stats" class="records-stats"></p>
+        </div>
         <button id="restart-btn">Reiniciar</button>
+        <button id="reset-records-btn" type="button" class="link-btn">Resetear records</button>
       </div>
     </div>
 

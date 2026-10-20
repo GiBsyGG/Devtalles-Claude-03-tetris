@@ -28,6 +28,7 @@ Three files, all logic in `game.js` (single script, global scope, `'use strict'`
 - B2B halo is CSS: `syncB2B` toggles `b2b-active` on `.game-area` (`#b2b-badge`, `--b2b-glow`).
 
 - Theming: CSS variables under `:root` (dark, default) and `[data-theme="light"]`; `applyTheme` in `game.js` swaps `COLORS` between `PALETTES.dark/light`, caches `--grid` into `gridColor`, repaints directly (rAF is stopped when paused/game over) and persists to `localStorage` key `tetris-theme`. A small inline script in `index.html`'s head applies the saved theme before first paint.
+- Records (localStorage `tetris-records`, try/catch everywhere): `Records` (game.js) keeps `{top (5 {name,score}), bestCombo, maxLines}`; `gameBestCombo` tracked in `lockPiece`; `endGame` updates stats, computes `pendingRank` and shows `#record-form` (name input, `submitRecord`) if the score enters the top. Rendered only via `textContent` into `#records-list`/`#records-stats` (side panel, always visible = "pantalla de inicio", no extra start screen) and `#overlay-records`/`#overlay-stats` (game-over overlay, hidden on pause by `showRecordsInOverlay`); saved entry gets `.highlight`. `#reset-records-btn` confirms then clears. Extra ids: `records-list`, `records-stats`, `record-form`, `record-name`, `record-msg`, `record-save`, `overlay-records-wrap`, `overlay-records`, `overlay-stats`, `reset-records-btn`.
 
 ## Gotchas
 
