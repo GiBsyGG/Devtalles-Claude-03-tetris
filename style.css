@@ -317,6 +317,43 @@ body {
   font-size: 12px !important;
 }
 
+/* ---- Menú de pausa ---- */
+#pause-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--accent);
+}
+
+.pause-list li {
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.pause-list li.selected {
+  border-color: var(--accent);
+  background: var(--overlay-bg);
+}
+
+.level-pick {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  color: var(--accent);
+}
+
+#pause-hint {
+  font-size: 11px;
+}
+
+#pause-hint.hidden {
+  display: none;
+}
+
 #ability-msg {
   min-height: 16px;
   font-size: 12px;
