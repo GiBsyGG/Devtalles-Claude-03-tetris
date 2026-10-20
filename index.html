@@ -9,10 +9,21 @@
     // Aplica el tema guardado antes de pintar para evitar un destello
     try {
       if (localStorage.getItem('tetris-theme') === 'light') document.documentElement.dataset.theme = 'light';
+      var s = localStorage.getItem('tetris-skin');
+      if (s) document.documentElement.dataset.skin = s;
     } catch (e) {}
   </script>
 </head>
 <body>
+  <label class="skin-picker" for="skin-select">
+    <span>Skin</span>
+    <select id="skin-select" tabindex="-1">
+      <option value="retro">Retro</option>
+      <option value="neon">Neon</option>
+      <option value="pastel">Pastel</option>
+      <option value="pixel">Pixel art</option>
+    </select>
+  </label>
   <button id="theme-toggle" type="button" tabindex="-1" aria-label="Cambiar a modo claro" title="Cambiar a modo claro" aria-pressed="false">
     <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="4"></circle>
