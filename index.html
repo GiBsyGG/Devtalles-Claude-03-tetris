@@ -115,6 +115,32 @@
         </ul>
         <p id="ability-msg"></p>
       </div>
+    <div id="pause-menu" class="overlay hidden">
+      <div class="overlay-box">
+        <p id="pause-title">PAUSA</p>
+        <ul id="pause-main" class="pause-list">
+          <li data-action="resume" role="button">Reanudar</li>
+          <li data-action="restart" role="button">Reiniciar</li>
+          <li data-action="controls" role="button">Ver controles</li>
+          <li data-action="level" class="pause-level-row">
+            <span>Nivel inicial</span>
+            <span class="level-step" data-step="-1" role="button" aria-label="Bajar nivel inicial">◀</span>
+            <span id="pause-level">1</span>
+            <span class="level-step" data-step="1" role="button" aria-label="Subir nivel inicial">▶</span>
+          </li>
+        </ul>
+        <ul id="pause-controls" class="ability-list hidden">
+          <li><kbd>←</kbd><kbd>→</kbd> mover</li>
+          <li><kbd>↑</kbd><kbd>X</kbd> rotar</li>
+          <li><kbd>↓</kbd> bajar</li>
+          <li><kbd>Space</kbd> caída</li>
+          <li><kbd>C</kbd><kbd>Shift</kbd> guardar</li>
+          <li><kbd>E</kbd> habilidad</li>
+          <li><kbd>P</kbd><kbd>Esc</kbd> pausa</li>
+          <li class="ability-esc"><kbd>Esc</kbd> volver</li>
+        </ul>
+        <p id="pause-hint">↑↓ Enter · ←→ nivel · Esc volver</p>
+      </div>
     </div>
     </div>
   </div>

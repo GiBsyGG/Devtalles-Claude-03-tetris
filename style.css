@@ -323,6 +323,69 @@ body {
   color: var(--danger);
 }
 
+/* ---- Menú de pausa ---- */
+#pause-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--accent);
+}
+
+.pause-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 190px;
+}
+
+.pause-list.hidden {
+  display: none;
+}
+
+.pause-list li {
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pause-list li.selected {
+  border-color: var(--accent);
+  background: var(--kbd-bg);
+}
+
+.pause-level-row {
+  justify-content: space-between !important;
+}
+
+.level-step {
+  cursor: pointer;
+  padding: 0 4px;
+  color: var(--accent);
+  user-select: none;
+}
+
+#pause-level {
+  min-width: 20px;
+  font-weight: 700;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+#pause-hint {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#pause-hint.hidden {
+  display: none;
+}
+
 /* ---- Hold: atenuado mientras ya se usó en el turno actual ---- */
 .panel-hold {
   width: 122px;
