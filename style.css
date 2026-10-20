@@ -643,6 +643,7 @@ kbd {
 #start-records-wrap.hidden,
 .start-main.hidden {
   display: none;
+}
 
 /* Selector de skin */
 .skin-picker {
