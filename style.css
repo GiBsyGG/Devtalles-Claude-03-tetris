@@ -400,7 +400,7 @@ kbd {
   color: var(--accent);
 }
 
-#restart-btn {
+#restart-btn, #play-btn, #save-btn {
   margin-top: 8px;
   background: var(--accent);
   color: var(--accent-text);
@@ -414,7 +414,7 @@ kbd {
   transition: background 0.15s;
 }
 
-#restart-btn:hover {
+#restart-btn:hover, #play-btn:hover, #save-btn:hover {
   background: var(--accent-hover);
 }
 
@@ -487,4 +487,98 @@ kbd {
 [data-skin="neon"] #hold-canvas,
 [data-skin="neon"] #queue-canvas {
   background: #000;
+}
+
+/* ---- Records locales ---- */
+.start-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.records {
+  font-size: 0.8rem;
+}
+
+.records table {
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+.records th, .records td {
+  padding: 3px 8px;
+  text-align: right;
+}
+
+.records th:nth-child(2), .records td:nth-child(2) {
+  text-align: left;
+}
+
+.records th {
+  color: var(--label);
+  font-weight: normal;
+}
+
+.records tr.new-record td {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+.records .records-empty {
+  color: var(--muted);
+  padding: 8px 0;
+}
+
+.records .records-stats {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.record-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.record-form.hidden, .records.hidden {
+  display: none;
+}
+
+.record-row {
+  display: flex;
+  gap: 6px;
+}
+
+#name-input {
+  width: 140px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--board-bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.link-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  padding: 6px 16px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.link-btn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+#save-btn {
+  margin-top: 0;
+  padding: 6px 16px;
 }
